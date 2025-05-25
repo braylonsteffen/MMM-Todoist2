@@ -1,13 +1,17 @@
 
-# MMM-Todoist
-** Developer is not actively maintaining this Extension. **
+# MMM-Todoist2
 
+**NOTE**: This module is an updated version of [MMM-Todoist](https://github.com/cbrooker/MMM-Todoist). The original developer seems to have abandoned the module.
 
 This an extension for the [MagicMirror](https://github.com/MichMich/MagicMirror). It can display your Todoist todos. You can add multiple instances with different lists. Only one account supported.
 The requests to the server will be paused is the module is not displayed (use of a carousel or hidden by Remote-Control for example) or by the use of a PIR sensor and the module MMM-PIR-Sensor. An immediate update will occurs at the return of the module display. 
 
+## Migrating from MMM-Todoist:
+The recommendation is to delete your old MMM-Todoist install and follow the installation instructions below. Once complete, update your `config.js` file to use the `MMM-Todoist2` name and restart your mirror!
+
+
 ## Installation
-1. Navigate into your MagicMirror's `modules` folder and execute `git clone https://github.com/cbrooker/MMM-Todoist.git`. A new folder will appear navigate into it.
+1. Navigate into your MagicMirror's `modules` folder and execute `git clone https://github.com/ZachR19/MMM-Todoist2.git`. A new folder will appear - navigate into it.
 2. Execute `npm install` to install the node dependencies.
 
 ## Using the module
@@ -16,7 +20,7 @@ To use this module, add it to the modules array in the `config/config.js` file:
 ````javascript
 modules: [
 	{
-		module: 'MMM-Todoist',
+		module: 'MMM-Todoist2',
 		position: 'top_right',	// This can be any of the regions. Best results in left or right regions.
 		header: 'Todoist', // This is optional
 		config: { // See 'Configuration options' for more information.
@@ -26,9 +30,9 @@ modules: [
 			updateInterval: 10*60*1000, // Update every 10 minutes
 			fade: false,      
 			// projects and/or labels is mandatory:
-			projects: [ 166564794 ], 
+			projects: [ "abc123" ],
 			labels: [ "MagicMirror", "Important" ] // Tasks for any projects with these labels will be shown.
-      }
+		}
 	}
 ]
 ````
@@ -80,14 +84,14 @@ The following properties can be configured:
 				Array of ProjectIDs you want to display. <br>
 				<br><b>Possible values:</b> <code>array</code>
 				<br><b>Default value:</b> <code>[ ]</code>
-				<br><b>Example:</b> <code>[166564794, 166564792]</code>
+				<br><b>Example:</b> <code>["6Xqv9F57VC6mR948", "6XrQ2482qG7W9gh7"]</code>
 				<br>
 				<br>
 				<b>Getting the Todoist ProjectID:</b><br>
 				1) Go to Todoist (Log in if you aren't)<br>
 				2) Click on a Project in the left menu<br>
-				3) Your browser URL will change to something like<br> <code>"https://todoist.com/app?lang=en&v=818#project%2F166564897"</code><br><br>
-				Everything after %2F is the Project ID. In this case "166564897"<br><br>
+				3) Your browser URL will change to something like<br> <code>"https://app.todoist.com/app/project/myProject-6Xqv9F57VC6mR948</code><br><br>
+				Everything after `myProject-` is the Project ID. In this case "6Xqv9F57VC6mR948"<br><br>
 				<hr />
 				Alternatively, if you add <b>debug=true</b> in your config.js the Projects and ProjectsIDs will be displayed on MagicMirror as well as in the Browser console.<br><br>
 				<b>This value and/or the labels entry must be specified</b>. If both projects and labels are specified, then tasks from both will be shown.
@@ -222,7 +226,6 @@ The following properties can be configured:
 				<br><b>Default value:</b> <code>false</code>
 			</td>
 		</tr>
-		
 	</tbody>
 </table>
 
@@ -236,7 +239,7 @@ A few sample Screen Shots to show you what this module looks like. It's fairly c
 Option enabled: displayAvatar: true
 ![My image](https://raw.githubusercontent.com/thyed/MMM-Todoist/master/todoist-avatars.png)
 
-Option enabled: displayLastUpdate: true, wrapEvents: true, maxTitleLenght: 25
+Option enabled: displayLastUpdate: true, wrapEvents: true, maxTitleLength: 25
 ![My image](https://github.com/AgP42/MMM-Todoist/blob/master/todoist.png)
 
 Options enabled: orderBy:todoist, showProjects: true
@@ -263,13 +266,14 @@ Options enabled: orderBy:dueDateAsc, showProjects: false
 
 ## Attribution
 
+MMM-Todoist2 is based on MMM-Todoist by Chris Brooker. (https://github.com/cbrooker/MMM-Todoist)
 This project is based on work done by Paul-Vincent Roll in the MMM-Wunderlist module. (https://github.com/paviro/MMM-Wunderlist)
 
 
 The MIT License (MIT)
 =====================
 
-Copyright © 2016 Chris Brooker
+Copyright © 2025 Zach Raudebaugh
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
