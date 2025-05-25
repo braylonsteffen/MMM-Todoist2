@@ -7,8 +7,17 @@ This an extension for the [MagicMirror](https://github.com/MichMich/MagicMirror)
 The requests to the server will be paused is the module is not displayed (use of a carousel or hidden by Remote-Control for example) or by the use of a PIR sensor and the module MMM-PIR-Sensor. An immediate update will occurs at the return of the module display. 
 
 ## Migrating from MMM-Todoist:
-The recommendation is to delete your old MMM-Todoist install and follow the installation instructions below. Once complete, update your `config.js` file to use the `MMM-Todoist2` name and restart your mirror!
+The recommendation is to delete your old MMM-Todoist install and follow the installation instructions below. Once complete, make the following changes to the module configuration:
 
+1. In your MagicMirror `config.js` file, change the module name from `MMM-Todoist` to `MMM-Todoist2` 
+2. Update `sortType` to `sortOrder` and place any values you would like to sort by in an array (more info below)
+
+Restart your mirror and enjoy your todoist lists!
+
+## Updates since MMM-Todoist:
+
+1. Uses the new Todoist API
+2. Now allows for sorting modules by multiple fields, instead of just one
 
 ## Installation
 1. Navigate into your MagicMirror's `modules` folder and execute `git clone https://github.com/ZachR19/MMM-Todoist2.git`. A new folder will appear - navigate into it.
