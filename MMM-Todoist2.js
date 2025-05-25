@@ -1,14 +1,17 @@
 /* global Module */
 
 /* Magic Mirror
- * Module: MMM-Todoist
+ * Module: MMM-Todoist2
  *
- * By Chris Brooker
+ * Managed by Zach Raudebaugh
+ * Fork of MMM-Todoist by Chris Brooker
  *
  * MIT Licensed.
  */
 
 /*
+ * Update by 19ZachR 24/5/2025
+ * - Updated Todoist API URI
  * Update by mabahj 24/11/2019
  * - Added support for labels in addtion to projects
  * Update by AgP42 the 18/07/2018
@@ -30,7 +33,7 @@
 //UserPresence Management (PIR sensor)
 var UserPresence = true; //true by default, so no impact for user without a PIR sensor
 
-Module.register("MMM-Todoist", {
+Module.register("MMM-Todoist2", {
 
 	defaults: {
 		maximumEntries: 10,
@@ -41,7 +44,9 @@ Module.register("MMM-Todoist", {
 		fade: true,
 		fadePoint: 0.25,
 		fadeMinimumOpacity: 0.25,
-		sortType: "todoist",
+
+		// New config specific to MMM-Todoist2
+		groupByProject: true,
 
 		//New config from AgP42
 		displayLastUpdate: false, //add or not a line after the tasks with the last server update time
@@ -54,48 +59,23 @@ Module.register("MMM-Todoist", {
 		displaySubtasks: true, // set to false to exclude subtasks
 		displayAvatar: false,
 		showProject: true,
-		// projectColors: ["#95ef63", "#ff8581", "#ffc471", "#f9ec75", "#a8c8e4", "#d2b8a3", "#e2a8e4", "#cccccc", "#fb886e",
-		// 	"#ffcc00", "#74e8d3", "#3bd5fb", "#dc4fad", "#ac193d", "#d24726", "#82ba00", "#03b3b2", "#008299",
-		// 	"#5db2ff", "#0072c6", "#000000", "#777777"
-		// ], //These colors come from Todoist and their order matters if you want the colors to match your Todoist project colors.
-		
-		//TODOIST Change how they are doing Project Colors, so now I'm changing it.
-		projectColors: {
-			30:'#b8256f',
-			31:'#db4035',
-			32:'#ff9933',
-			33:'#fad000',
-			34:'#afb83b',
-			35:'#7ecc49',
-			36:'#299438',
-			37:'#6accbc',
-			38:'#158fad',
-			39:'#14aaf5',
-			40:'#96c3eb',
-			41:'#4073ff',
-			42:'#884dff',
-			43:'#af38eb',
-			44:'#eb96eb',
-			45:'#e05194',
-			46:'#ff8d85',
-			47:'#808080',
-			48:'#b8b8b8',
-			49:'#ccac93'
-		},
 
 		//This has been designed to use the Todoist Sync API.
-		apiVersion: "v9",
-		apiBase: "https://todoist.com/API",
+		apiVersion: "v1",
+		apiBase: "https://api.todoist.com/api",
 		todoistEndpoint: "sync",
 
 		todoistResourceType: "[\"items\", \"projects\", \"collaborators\", \"user\", \"labels\"]",
 
-		debug: false
+		debug: false,
+
+		// Updated: sortType is now an array of sort keys
+		sortOrder: ["todoist"]
 	},
 
 	// Define required scripts.
 	getStyles: function () {
-		return ["MMM-Todoist.css"];
+		return ["MMM-Todoist2.css"];
 	},
 	getTranslations: function () {
 		return {
@@ -129,8 +109,7 @@ Module.register("MMM-Todoist", {
 		}
 
 		// keep track of user's projects list (used to build the "whitelist")
-		this.userList = typeof this.config.projects !== "undefined" ?
-			JSON.parse(JSON.stringify(this.config.projects)) : [];
+		this.userList = typeof this.config.projects !== "undefined" ? JSON.parse(JSON.stringify(this.config.projects)) : [];
 
 		this.sendSocketNotification("FETCH_TODOIST", this.config);
 
@@ -160,6 +139,7 @@ Module.register("MMM-Todoist", {
 		}
 	},
 
+	// Additional support for MMM-PIR-Sensor to detect when there is movement in front of the mirror
 	GestionUpdateIntervalToDoIst: function () {
 		if (UserPresence === true && this.ModuleToDoIstHidden === false) {
 			var self = this;
@@ -176,7 +156,7 @@ Module.register("MMM-Todoist", {
 			}
 
 		} else { //if (UserPresence = false OR ModuleHidden = true)
-			Log.log("Personne regarde : on stop l'update " + this.name + " projet : " + this.config.projects);
+			Log.log("Nobody is looking, stop updating " + this.name + " project : " + this.config.projects);
 			clearInterval(this.updateIntervalID); // stop the update interval of this module
 			this.updateIntervalID = 0; //reset the flag to be able to start another one at resume
 		}
@@ -249,15 +229,9 @@ Module.register("MMM-Todoist", {
 		var items = [];
 		var labelIds = [];
 
-		if (tasks == undefined) {
-			return;
-		}
-		if (tasks.accessToken != self.config.accessToken) {
-			return;
-		}
-		if (tasks.items == undefined) {
-			return;
-		}
+		if (tasks == undefined) return; 
+		if (tasks.accessToken != self.config.accessToken) return;
+		if (tasks.items == undefined) return;
 
 		if (this.config.blacklistProjects) {
 			// take all projects in payload, and remove the ones specified by user
@@ -275,6 +249,7 @@ Module.register("MMM-Todoist", {
 				console.log(this.config.projects);
 			}
 		}
+
 		/* Not needed for labels, but kept for reuse elsewhere
 		// Loop through labels fetched from API and find corresponding label IDs for task filtering
 		// Could be re-used for project names -> project IDs.
@@ -289,6 +264,7 @@ Module.register("MMM-Todoist", {
 			}
 		}
 		*/
+
 		if (self.config.displayTasksWithinDays > -1 || !self.config.displayTasksWithoutDue) {
 			tasks.items = tasks.items.filter(function (item) {
 				if (item.due === null) {
@@ -363,29 +339,41 @@ Module.register("MMM-Todoist", {
 		});
 
 		//***** Sorting code if you want to add new methods. */
-		switch (self.config.sortType) {
-		case "todoist":
-			sorteditems = self.sortByTodoist(items);
-			break;
-		case 'priority':
-			sorteditems = self.sortByPriority(items);
-			break;
-		case "dueDateAsc":
-			sorteditems = self.sortByDueDateAsc(items);
-			break;
-		case "dueDateDesc":
-			sorteditems = self.sortByDueDateDesc(items);
-			break;
-		case "dueDateDescPriority":
-			sorteditems = self.sortByDueDateDescPriority(items);
-			break;
-		default:
-			sorteditems = self.sortByTodoist(items);
-			break;
+		// Multi-level sorting using sortOrder array
+		function getComparator(type) {
+			switch (type) {
+				case "todoist":
+					return self.sortByTodoistComparator;
+				case "project":
+					return self.sortByProjectComparator;
+				case "priority":
+					return self.sortByPriorityComparator;
+				case "dueDateAsc":
+					return self.sortByDueDateAscComparator;
+				case "dueDateDesc":
+					return self.sortByDueDateDescComparator;
+				default:
+					return function() { return 0; };
+			}
 		}
+
+		// Sort by the specified sort types using their comparator functions
+		var sortTypes = Array.isArray(self.config.sortOrder) ? self.config.sortOrder : [self.config.sortOrder];
+		items.sort(function(a, b) {
+			for (var i = 0; i < sortTypes.length; i++) {
+				var cmp = getComparator(sortTypes[i])(a, b);
+				if (cmp !== 0) return cmp;
+			}
+			return 0;
+		});
 
 		//Slice by max Entries
 		items = items.slice(0, this.config.maximumEntries);
+
+		// Group by project
+		if (self.config.groupByProject) {
+			
+		}
 
 		this.tasks = {
 			"items": items,
@@ -412,61 +400,41 @@ Module.register("MMM-Todoist", {
 
 		return new Date(year, month - 1, day, hour, minute, second);
 	},
-	sortByTodoist: function (itemstoSort) {
-		itemstoSort.sort(function (a, b) {
-			if (!a.parent_id && !b.parent_id) {
-				// neither have parent_id so both are parent tasks, sort by their id
-				return a.id - b.id;
-			} else if (a.parent_id === b.parent_id) {
-				// both are children of the same parent task, sort by child order
-				return a.child_order - b.child_order;
-			} else if (a.parent_id === b.id) {
-				// a is a child of b, so it goes after b
-				return 1;
-			} else if (b.parent_id === a.id) {
-				// b is a child of a, so it goes after a
-				return -1;
-			} else if (!a.parent_id) {
-				// a is a parent task, b is a child (but not of a), so compare a to b's parent
-				return a.id - b.parent_id;
-			} else if (!b.parent_id) {
-				// b is a parent task, a is a child (but not of b), so compare b to a's parent
-				return a.parent_id - b.id;
-			} else {
-				// both are child tasks, but with different parents so sort by their parents
-				return a.parent_id - b.parent_id;
-			}
-		});
-		return itemstoSort;
+	sortByTodoistComparator: function(a, b) {
+		if (!a.parent_id && !b.parent_id) { // neither have parent_id so both are parent tasks, sort by their id
+			return a.id - b.id;
+		} 
+		else if (a.parent_id === b.parent_id) { // both are children of the same parent task, sort by child order
+			return a.child_order - b.child_order;
+		} 
+		else if (a.parent_id === b.id) { // a is a child of b, so it goes after b
+			return 1;
+		} 
+		else if (b.parent_id === a.id) { // b is a child of a, so it goes after a
+			return -1;
+		} 
+		else if (!a.parent_id) { // a is a parent task, b is a child (but not of a), so compare a to b's parent
+			return a.id - b.parent_id;
+		} 
+		else if (!b.parent_id) { // b is a parent task, a is a child (but not of b), so compare b to a's parent
+			return a.parent_id - b.id;
+		} 
+		else { // both are child tasks, but with different parents so sort by their parents
+			return a.parent_id - b.parent_id;
+		}
 	},
-	sortByDueDateAsc: function (itemstoSort) {
-		itemstoSort.sort(function (a, b) {
-			return a.date - b.date;
-		});
-		return itemstoSort;
+	sortByProjectComparator: function(a, b) {
+		return a.project_id.localeCompare(b.project_id);
 	},
-	sortByDueDateDesc: function (itemstoSort) {
-		itemstoSort.sort(function (a, b) {
-			return b.date - a.date;
-		});
-		return itemstoSort;
+	sortByPriorityComparator: function(a, b) {
+		return b.priority - a.priority;
 	},
-	sortByPriority: function (itemstoSort) {
-		itemstoSort.sort(function (a, b) {
-			return b.priority - a.priority;
-		});
-		return itemstoSort;
+	sortByDueDateAscComparator: function(a, b) {
+		return a.date - b.date;
 	},
-	sortByDueDateDescPriority: function (itemstoSort) {
-		itemstoSort.sort(function (a, b) {
-			if (a.date > b.date) return 1;
-			if (a.date < b.date) return -1;
-
-			if (a.priority < b.priority) return 1;
-			if (a.priority > b.priority) return -1;
-		});
-		return itemstoSort;
-    	},
+	sortByDueDateDescComparator: function(a, b) {
+		return b.date - a.date;
+	},
 	createCell: function(className, innerHTML) {
 		var cell = document.createElement("div");
 		cell.className = "divTableCell " + className;
@@ -501,7 +469,7 @@ Module.register("MMM-Todoist", {
 		var para = temp.getElementsByTagName('p');
 		var taskText = para[0].innerHTML;
 		// if sorting by todoist, indent subtasks under their parents
-		if (this.config.sortType === "todoist" && item.parent_id) {
+		if (this.config.sortOrder.includes("todoist") && item.parent_id) {
 			// this item is a subtask so indent it
 			taskText = '- ' + taskText;
 		}
@@ -579,21 +547,21 @@ Module.register("MMM-Todoist", {
 	},
 	addProjectCell: function(item) {
 		var project = this.tasks.projects.find(p => p.id === item.project_id);
-		var projectcolor = this.config.projectColors[project.color];
-		var innerHTML = "<span class='projectcolor' style='color: " + projectcolor + "; background-color: " + projectcolor + "'></span>" + project.name;
+		var innerHTML = "<span class='projectcolor' style='color: " + project.projectcolor + "; background-color: " + project.projectcolor + "'></span>" + project.name;
 		return this.createCell("xsmall", innerHTML);
 	},
 	addAssigneeAvatorCell: function(item, collaboratorsMap) {	
-		var avatarImg = document.createElement("img");
-		avatarImg.className = "todoAvatarImg";
-
 		var colIndex = collaboratorsMap.get(item.responsible_uid);
-		if (typeof colIndex !== "undefined" && this.tasks.collaborators[colIndex].image_id!=null) {
-			avatarImg.src = "https://dcff1xvirvpfp.cloudfront.net/" + this.tasks.collaborators[colIndex].image_id + "_big.jpg";
-		} else { avatarImg.src = "/modules/MMM-Todoist/1x1px.png"; }
 
 		var cell = this.createCell("", "");
-		cell.appendChild(avatarImg);
+
+		// Add avatar image only if collaborator is defined
+		if (typeof colIndex !== "undefined" && this.tasks.collaborators[colIndex].image_id!=null) {
+			var avatarImg = document.createElement("img");
+			avatarImg.className = "todoAvatarImg";
+			avatarImg.src = "https://dcff1xvirvpfp.cloudfront.net/" + this.tasks.collaborators[colIndex].image_id + "_big.jpg";
+			cell.appendChild(avatarImg);
+		} 
 
 		return cell;
 	},
