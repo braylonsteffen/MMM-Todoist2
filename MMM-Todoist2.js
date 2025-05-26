@@ -46,11 +46,11 @@ Module.register("MMM-Todoist2", {
 		fadeMinimumOpacity: 0.25,
 
 		// New config specific to MMM-Todoist2
-		groupByProject: true,
+		groupByProject: false,
 
 		//New config from AgP42
 		displayLastUpdate: false, //add or not a line after the tasks with the last server update time
-		displayLastUpdateFormat: "dd - HH:mm:ss", //format to display the last update. See Moment.js documentation for all display possibilities
+		displayLastUpdateFormat: "ddd - HH:mm:ss", //format to display the last update. See Moment.js documentation for all display possibilities
 		maxTitleLength: 25, //10 to 50. Value to cut the line if wrapEvents: true
 		wrapEvents: false, // wrap events to multiple lines breaking at maxTitleLength
 		displayTasksWithoutDue: true, // Set to false to not print tasks without a due date
@@ -232,6 +232,29 @@ Module.register("MMM-Todoist2", {
 		if (tasks == undefined) return; 
 		if (tasks.accessToken != self.config.accessToken) return;
 		if (tasks.items == undefined) return;
+
+		// If groupByProjects is true, we need to ensure "project" is the first element in sortOrder
+		// otherwise the sort will be incorrect after the grouping
+		if (this.config.groupByProject && this.config.sortOrder[0] !== "project") {
+			var array = this.config.sortOrder;
+			if (array.includes("project")) {
+				// sortOrder contains project, but it isn't first
+				var i = array.indexOf("project");
+
+				// remove "project" from array
+				const element = array.splice(i, 1)[0];
+
+				// add "project" to front
+				array.unshift(element);
+			}
+			else {
+				// add "project" to front
+				array.unshift("project");
+			}
+
+			// update config
+			this.config.sortOrder = array;
+		}
 
 		if (this.config.blacklistProjects) {
 			// take all projects in payload, and remove the ones specified by user
@@ -437,9 +460,16 @@ Module.register("MMM-Todoist2", {
 	},
 	createCell: function(className, innerHTML) {
 		var cell = document.createElement("div");
-		cell.className = "divTableCell " + className;
+		cell.className = "col " + className;
 		cell.innerHTML = innerHTML;
 		return cell;
+	},
+	createHeader: function(className, innerHTML, style) {
+		var row = document.createElement("div");
+		row.className = "row projectheader " + className;
+		row.innerHTML = innerHTML;
+		row.style = style;
+		return row;
 	},
 	addPriorityIndicatorCell: function(item) {
 		var className = "priority ";
@@ -454,13 +484,10 @@ Module.register("MMM-Todoist2", {
 				className += "priority3";
 				break;
 			default:
-				className = "";
+				className += "";
 				break;
 		}
 		return this.createCell(className, "&nbsp;");;
-	},
-	addColumnSpacerCell: function() {
-		return this.createCell("spacerCell", "&nbsp;");
 	},
 	addTodoTextCell: function(item) {
 		var temp = document.createElement('div');
@@ -501,9 +528,9 @@ Module.register("MMM-Todoist2", {
 		} else if (diffDays === 0) {
 			innerHTML = this.translate("TODAY");
 			if (item.all_day || dueDateTime >= now) {
-				className += "today";
+				className += "xsmall today";
 			} else {
-				className += "overdue";
+				className += "xsmall overdue";
 			}
 		} else if (diffDays === 1) {
 			innerHTML = this.translate("TOMORROW");
@@ -547,23 +574,29 @@ Module.register("MMM-Todoist2", {
 	},
 	addProjectCell: function(item) {
 		var project = this.tasks.projects.find(p => p.id === item.project_id);
-		var innerHTML = "<span class='projectcolor' style='color: " + project.projectcolor + "; background-color: " + project.projectcolor + "'></span>" + project.name;
-		return this.createCell("xsmall", innerHTML);
+		var innerHTML = "<div class='col projectname'>" + project.name + "</div>";
+		return this.createCell("xsmall project", innerHTML);
 	},
-	addAssigneeAvatorCell: function(item, collaboratorsMap) {	
+	addAssigneeAvatarCell: function(item, collaboratorsMap) {	
 		var colIndex = collaboratorsMap.get(item.responsible_uid);
 
-		var cell = this.createCell("", "");
+		var cell = this.createCell("image", "");
 
 		// Add avatar image only if collaborator is defined
 		if (typeof colIndex !== "undefined" && this.tasks.collaborators[colIndex].image_id!=null) {
 			var avatarImg = document.createElement("img");
-			avatarImg.className = "todoAvatarImg";
+			avatarImg.className = "avatarImg";
 			avatarImg.src = "https://dcff1xvirvpfp.cloudfront.net/" + this.tasks.collaborators[colIndex].image_id + "_big.jpg";
 			cell.appendChild(avatarImg);
 		} 
 
 		return cell;
+	},
+	addProjectHeader: function(item) {	
+		var project = this.tasks.projects.find(p => p.id === item.project_id);
+		var innerHTML = "<div class='col projectname'>" + project.name + "</div>";
+		var headerStyle = "";
+		return this.createHeader("", innerHTML, headerStyle);
 	},
 	getDom: function () {
 	
@@ -581,14 +614,11 @@ Module.register("MMM-Todoist2", {
 			return wrapper;
 		}
 
-
-		//New CSS based Table
-		var divTable = document.createElement("div");
-		divTable.className = "divTable normal small light";
-
+		// The tasks list uses a CSS flexgrid layout. All rows have a class of 'row' and all columns have a class of 'col'
+		// Column or row specific styling may have additional classes.
 		var divBody = document.createElement("div");
-		divBody.className = "divTableBody";
-		
+		divBody.className = "grid normal small light";
+
 		if (this.tasks === undefined) {
 			return wrapper;
 		}
@@ -600,40 +630,49 @@ Module.register("MMM-Todoist2", {
 			collaboratorsMap.set(this.tasks.collaborators[value].id, value);
 		}
 
+		var lastProject = ""; // stores the last project name shown, used for grouping by project name
+
 		//Iterate through Todos
 		this.tasks.items.forEach(item => {
 			var divRow = document.createElement("div");
+
 			//Add the Row
-			divRow.className = "divTableRow";
+			divRow.className = "row task";
 			
+			//Headers
+			if (this.config.groupByProject && lastProject !== item.project_id) {
+				// show project name as a header
+				divBody.append(this.addProjectHeader(item));
+				lastProject = item.project_id;
+			}
 
 			//Columns
 			divRow.appendChild(this.addPriorityIndicatorCell(item));
-			divRow.appendChild(this.addColumnSpacerCell());
 			divRow.appendChild(this.addTodoTextCell(item));
 			divRow.appendChild(this.addDueDateCell(item));
-			if (this.config.showProject) {
-				divRow.appendChild(this.addColumnSpacerCell());
+
+			// If grouping by project, do not show the project as a cell
+			if (this.config.showProject && !this.config.groupByProject) {
 				divRow.appendChild(this.addProjectCell(item));
 			}
+
 			if (this.config.displayAvatar) {
-				divRow.appendChild(this.addAssigneeAvatorCell(item, collaboratorsMap));
+				divRow.appendChild(this.addAssigneeAvatarCell(item, collaboratorsMap));
 			}
 
 			divBody.appendChild(divRow);
 		});
 		
-		divTable.appendChild(divBody);
-		wrapper.appendChild(divTable);
+		wrapper.appendChild(divBody);
 
 		// create the gradient
-		if (this.config.fade && this.config.fadePoint < 1) divTable.querySelectorAll('.divTableRow').forEach((row, i, rows) => row.style.opacity = Math.max(0, Math.min(1 - ((((i + 1) * (1 / (rows.length))) - this.config.fadePoint) / (1 - this.config.fadePoint)) * (1 - this.config.fadeMinimumOpacity), 1)));
+		if (this.config.fade && this.config.fadePoint < 1) divBody.querySelectorAll('.row').forEach((row, i, rows) => row.style.opacity = Math.max(0, Math.min(1 - ((((i + 1) * (1 / (rows.length))) - this.config.fadePoint) / (1 - this.config.fadePoint)) * (1 - this.config.fadeMinimumOpacity), 1)));
 
 		// display the update time at the end, if defined so by the user config
 		if (this.config.displayLastUpdate) {
 			var updateinfo = document.createElement("div");
 			updateinfo.className = "xsmall light align-left";
-			updateinfo.innerHTML = "Update : " + moment.unix(this.lastUpdate).format(this.config.displayLastUpdateFormat);
+			updateinfo.innerHTML = "Last Update : " + moment.unix(this.lastUpdate).format(this.config.displayLastUpdateFormat);
 			wrapper.appendChild(updateinfo);
 		}
 

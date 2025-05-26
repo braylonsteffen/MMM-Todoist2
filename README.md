@@ -17,7 +17,8 @@ Restart your mirror and enjoy your todoist lists!
 ## Updates since MMM-Todoist:
 
 1. Uses the new Todoist API
-2. Now allows for sorting modules by multiple fields, instead of just one
+2. Now allows for sorting tasks by multiple fields, instead of just one
+3. Added `groupByProject` config property, which groups tasks by their project, then sorts using `sortOrder`
 
 ## Installation
 1. Navigate into your MagicMirror's `modules` folder and execute `git clone https://github.com/ZachR19/MMM-Todoist2.git`. A new folder will appear - navigate into it.
@@ -38,6 +39,7 @@ modules: [
 			maximumEntries: 60,
 			updateInterval: 10*60*1000, // Update every 10 minutes
 			fade: false,      
+			groupByProject: false,
 			// projects and/or labels is mandatory:
 			projects: [ "abc123" ],
 			labels: [ "MagicMirror", "Important" ] // Tasks for any projects with these labels will be shown.
@@ -183,7 +185,7 @@ The following properties can be configured:
 			<td><code>displayLastUpdateFormat</code></td>
 			<td>Format to use for the time display if displayLastUpdate:true <br>
 				<br><b>Possible values:</b> See [Moment.js formats](http://momentjs.com/docs/#/parsing/string-format/)
-				<br><b>Default value:</b> <code>'dd - HH:mm:ss'</code>
+				<br><b>Default value:</b> <code>'ddd - HH:mm:ss'</code>
 			</td>
 		</tr>
 		<tr>
@@ -231,6 +233,13 @@ The following properties can be configured:
 		<tr>
 			<td><code>hideWhenEmpty</code></td>
 			<td>Hide widget when all lists are empty (including header).<br>
+				<br><b>Possible values:</b> <code>boolean</code>
+				<br><b>Default value:</b> <code>false</code>
+			</td>
+		</tr>
+		<tr>
+			<td><code>groupByProject</code></td>
+			<td>Groups tasks by their project, then sorts using `sortOrder`. Project names are shown as the header for each group.<br>
 				<br><b>Possible values:</b> <code>boolean</code>
 				<br><b>Default value:</b> <code>false</code>
 			</td>

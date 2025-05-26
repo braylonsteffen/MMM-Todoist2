@@ -1,57 +1,111 @@
+.MMM-Todoist2 {
+    min-width: 20.6rem !important;
+}
+
+:root {
+    --color-red: #f35857;
+    --color-green: #03a05c;
+    --color-orange: #EB8909;
+    --color-blue: #246FE0;
+}
+
+.grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.col {
+    flex: 1;
+}
+
+.row {
+    width:100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.task {
+    flex-direction: row;
+}
+
+.projectheader {
+    /* color: white; */
+    display: flex;
+    border-bottom: 1px solid;
+    justify-content: start;
+    align-items: start;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+}
+
 .priority {
+    flex-grow: 0.03;
+    margin-right: 6px;
     width: 3px;
     border-right: 3px;
 }
 
 .priority1 {
-    background-color: #D1453B;
+    background-color: var(--color-red);
 }
 
 .priority2 {
-    background-color: #EB8909;
+    background-color: var(--color-orange);
 }
 
 .priority3 {
-    background-color: #246FE0;
+    background-color: var(--color-blue);
 }
 
 .alignLeft {
     text-align: left;
 }
 
-.spacerCell {
-    width: 3px;
-}
-
 .overdue {
-    text-decoration: underline #ac0000;
+    color: var(--color-red);
 }
 
 .today {
-    text-decoration: underline #03a05c;
+    color: var(--color-green);
 }
 
 .tomorrow {
-    text-decoration: underline #166cec;
+    color: var(--color-blue);
 }
 
-.projectcolor {
-    padding: 0 !important;
-    margin-right: 4px !important;
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 12px;
-    vertical-align: top;
-    margin-top: 3px;
+.projectname {
+
 }
 
+.project {
+    margin-top: 4px;
+    min-width: 2rem;
+    margin-left: 4px;
+    flex: 0 0 4rem;
+}
 
-/* .dueDate {
-    min-width: 100px;
-} */
+.title {
+    flex: 0 0 13rem;
+    min-width: 13rem;
+}
 
-.todoAvatarImg {
+.dueDate {
+    margin-top: 4px;
+    display: flex;
+    justify-content: end;
+    width: 3.5rem;
+    flex: 0 0 3rem;
+}
+
+.image {
+    max-width: 27px;
+}
+
+.avatarImg {
     border-radius: 50%;
     /* filter: grayscale(100%); */
     height: 27px;
@@ -60,37 +114,14 @@
     margin-right: auto;
 }
 
-.divTable{
-	display: table;
-	width: 100%;
+
+/* force alignment of all task columns EXCEPT the task name itself */
+.row .col:not(:nth-child(2)) {
+    align-self: start;
+    justify-self: end;
 }
-.divTableRow {
-	display: table-row;
-}
-.divTableHeading {
-	background-color: #EEE;
-	display: table-header-group;
-}
-.divTableCell, .divTableHead {
-	/* border: 1px solid #999999; */
-	display: table-cell;
-	/* padding: 3px 10px; */
-	vertical-align: middle;
-}
-.divTableHeading {
-	background-color: #EEE;
-	display: table-header-group;
-	font-weight: bold;
-}
-.divTableFoot {
-	background-color: #EEE;
-	display: table-footer-group;
-	font-weight: bold;
-}
-.divTableBody {
-	display: table-row-group;
-}
-.todoTextCell {
-    width: 400px;
-    overflow: hidden;
+
+/* Adjust spacing of first header, if any */
+.row.projectheader:first-child {
+    margin-top: 0rem;
 }
