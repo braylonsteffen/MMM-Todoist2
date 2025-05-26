@@ -29,14 +29,14 @@ module.exports = NodeHelper.create({
 	fetchTodos : function() {
 		var self = this;
 		//request.debug = true;
-		var acessCode = self.config.accessToken;
+		var accessCode = self.config.accessToken;
 		request({
 			url: self.config.apiBase + "/" + self.config.apiVersion + "/" + self.config.todoistEndpoint + "/",
 			method: "POST",
 			headers: {
 				"content-type": "application/x-www-form-urlencoded",
 				"cache-control": "no-cache",
-				"Authorization": "Bearer " + acessCode
+				"Authorization": "Bearer " + accessCode
 			},
 			form: {
 				sync_token: "*",
@@ -59,7 +59,7 @@ module.exports = NodeHelper.create({
 					item.contentHtml = markdown.makeHtml(item.content);
 				});
 
-				taskJson.accessToken = acessCode;
+				taskJson.accessToken = accessCode;
 				self.sendSocketNotification("TASKS", taskJson);
 			}
 			else{
