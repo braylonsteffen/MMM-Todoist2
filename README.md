@@ -254,37 +254,24 @@ The following properties can be configured:
 # Screen shots
 A few sample Screen Shots to show you what this module looks like. It's fairly configurable and changes considerably depending on how you use Todoist, how many projects you include, and how you sort.  
 
-Option enabled: displayAvatar: true
-![My image](https://raw.githubusercontent.com/thyed/MMM-Todoist/master/todoist-avatars.png)
+Options enabled: orderBy:todoist, showProject: true </br>
+![My image](https://zachr19.github.io/MMM-Todoist2/docs/assets/todoist_1.png) 
 
-Option enabled: displayLastUpdate: true, wrapEvents: true, maxTitleLength: 25
-![My image](https://github.com/AgP42/MMM-Todoist/blob/master/todoist.png)
+Option enabled: displayAvatar: true </br>
+![My image](https://zachr19.github.io/MMM-Todoist2/docs/assets/todoist_2.png) 
 
-Options enabled: orderBy:todoist, showProjects: true
-![My image](http://cbrooker.github.io/MMM-Todoist/Screenshots/1.png)  
+Option enabled: displayLastUpdate: true, wrapEvents: false, maxTitleLength: 25 </br>
+![My image](https://zachr19.github.io/MMM-Todoist2/docs/assets/todoist_3.png)
 
-Options enabled: orderBy:dueDateAsc, showProjects: true
-![My image](http://cbrooker.github.io/MMM-Todoist/Screenshots/2.png)  
+Options enabled: sortOrder: ["project", "dueDateAsc"], showProject: true
+![My image](https://zachr19.github.io/MMM-Todoist2/docs/assets/todoist_4.png)  
 
-Options enabled: orderBy:dueDateAsc, showProjects: false
-![My image](http://cbrooker.github.io/MMM-Todoist/Screenshots/3.png)  
-
-Options enabled: orderBy:todoist, showProjects: false
-![My image](http://cbrooker.github.io/MMM-Todoist/Screenshots/4.png)  
-
-Options enabled: orderBy:todoist, showProjects: true
-![My image](http://cbrooker.github.io/MMM-Todoist/Screenshots/5.png)  
-
-Options enabled: orderBy:dueDateAsc, showProjects: true
-![My image](http://cbrooker.github.io/MMM-Todoist/Screenshots/6.png)  
-
-Options enabled: orderBy:dueDateAsc, showProjects: false
-![My image](http://cbrooker.github.io/MMM-Todoist/Screenshots/7.png)  
-
+Options enabled: groupByProject: true, sortOrder: ["project", "dueDateAsc", "priority"], displayAvatar: true
+![My image](https://zachr19.github.io/MMM-Todoist2/docs/assets/todoist_5.png)
 
 ## Attribution
 
-MMM-Todoist2 is based on MMM-Todoist by Chris Brooker. (https://github.com/cbrooker/MMM-Todoist)
+MMM-Todoist2 is based on MMM-Todoist by Chris Brooker. (https://github.com/cbrooker/MMM-Todoist) </br>
 This project is based on work done by Paul-Vincent Roll in the MMM-Wunderlist module. (https://github.com/paviro/MMM-Wunderlist)
 
 
