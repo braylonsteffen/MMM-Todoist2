@@ -592,11 +592,58 @@ Module.register("MMM-Todoist2", {
 
 		return cell;
 	},
+	addAssigneeInitialsCell: function(item, collaboratorsMap) {
+		var colIndex = collaboratorsMap.get(item.responsible_uid);
+		var cell = this.createCell("assignee", "");
+
+		if (typeof colIndex !== "undefined") {
+			var collaborator = this.tasks.collaborators[colIndex];
+			if (collaborator) {
+				// 				var initials = collaborator.full_name
+				// 	.split(" ")
+				// 	.map(name => name.charAt(0).toUpperCase())
+				// 	.join("");
+
+				// var initialsCircle = document.createElement("div");
+				// initialsCircle.className = "assignee-circle";
+				// initialsCircle.innerText = initials;
+				// cell.appendChild(initialsCircle);
+
+				var profilePhoto = document.createElement("img");
+				profilePhoto.className = "assignee-photo";
+				profilePhoto.src = collaborator.image_id
+					? `https://dcff1xvirvpfp.cloudfront.net/${collaborator.image_id}_big.jpg`
+					: "https://via.placeholder.com/30"; // Fallback to placeholder if no image_id
+				cell.appendChild(profilePhoto);
+			}
+		}
+
+		return cell;
+	},
 	addProjectHeader: function(item) {	
 		var project = this.tasks.projects.find(p => p.id === item.project_id);
 		var innerHTML = "<div class='col projectname'>" + project.name + "</div>";
 		var headerStyle = "";
 		return this.createHeader("", innerHTML, headerStyle);
+	},
+	addCheckboxCell: function(item) {
+		var cell = this.createCell("checkbox", "");
+		var checkbox = document.createElement("input");
+		checkbox.type = "checkbox";
+		checkbox.className = "task-checkbox";
+		checkbox.addEventListener("click", () => {
+			this.markTaskDone(item.id);
+		});
+		cell.appendChild(checkbox);
+		return cell;
+	},
+	markTaskDone: function(taskId) {
+		const uuid = crypto.randomUUID(); // Generate a unique UUID for the request
+		this.sendSocketNotification("CLOSE_TASK", { uuid: uuid, taskId: taskId });
+
+		// Remove the task from the UI
+		this.tasks.items = this.tasks.items.filter(item => item.id !== taskId);
+		this.updateDom();
 	},
 	getDom: function () {
 	
@@ -635,23 +682,20 @@ Module.register("MMM-Todoist2", {
 		//Iterate through Todos
 		this.tasks.items.forEach(item => {
 			var divRow = document.createElement("div");
-
-			//Add the Row
 			divRow.className = "row task";
-			
-			//Headers
+
+			// Headers
 			if (this.config.groupByProject && lastProject !== item.project_id) {
-				// show project name as a header
 				divBody.append(this.addProjectHeader(item));
 				lastProject = item.project_id;
 			}
 
-			//Columns
+			// Columns
+			divRow.appendChild(this.addCheckboxCell(item));
 			divRow.appendChild(this.addPriorityIndicatorCell(item));
 			divRow.appendChild(this.addTodoTextCell(item));
 			divRow.appendChild(this.addDueDateCell(item));
 
-			// If grouping by project, do not show the project as a cell
 			if (this.config.showProject && !this.config.groupByProject) {
 				divRow.appendChild(this.addProjectCell(item));
 			}
@@ -659,6 +703,8 @@ Module.register("MMM-Todoist2", {
 			if (this.config.displayAvatar) {
 				divRow.appendChild(this.addAssigneeAvatarCell(item, collaboratorsMap));
 			}
+
+			divRow.appendChild(this.addAssigneeInitialsCell(item, collaboratorsMap));
 
 			divBody.appendChild(divRow);
 		});

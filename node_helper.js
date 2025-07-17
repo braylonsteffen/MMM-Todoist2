@@ -23,6 +23,8 @@ module.exports = NodeHelper.create({
 		if (notification === "FETCH_TODOIST") {
 			this.config = payload;
 			this.fetchTodos();
+		} else if (notification === "CLOSE_TASK") {
+			this.closeTask(payload);
 		}
 	},
 
@@ -66,6 +68,41 @@ module.exports = NodeHelper.create({
 				console.log("Todoist api request status="+response.statusCode);
 			}
 
+		});
+	},
+
+	closeTask: function(payload) {
+		const uuid = payload.uuid;
+		const taskId = payload.taskId;
+		const accessCode = this.config.accessToken;
+
+		request({
+			url: this.config.apiBase + "/" + this.config.apiVersion + "/" + this.config.todoistEndpoint + "/",
+			method: "POST",
+			headers: {
+				"content-type": "application/x-www-form-urlencoded",
+				"cache-control": "no-cache",
+				"Authorization": "Bearer " + accessCode
+			},
+			form: {
+				commands: JSON.stringify([
+					{
+						type: "item_close",
+						uuid: uuid,
+						args: { id: taskId }
+					}
+				])
+			}
+		}, function(error, response, body) {
+			if (error) {
+				console.error("ERROR - MMM-Todoist: " + error);
+				return;
+			}
+			if (response.statusCode === 200) {
+				console.log("Task closed successfully: " + taskId);
+			} else {
+				console.error("Failed to close task. Status code: " + response.statusCode);
+			}
 		});
 	}
 });

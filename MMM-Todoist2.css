@@ -114,6 +114,47 @@
     margin-right: auto;
 }
 
+.checkbox {
+    margin-right: 10px;
+    width: 30px;
+    height: 30px;
+    transform: scale(1.5);
+    cursor: pointer;
+    accent-color: var(--color-blue);
+}
+
+.checkbox:checked {
+    accent-color: var(--color-green);
+}
+
+.assignee {
+    flex: 0 0 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.assignee-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--color-blue);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.assignee-photo {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: block;
+    margin: auto;
+}
+
 
 /* force alignment of all task columns EXCEPT the task name itself */
 .row .col:not(:nth-child(2)) {
